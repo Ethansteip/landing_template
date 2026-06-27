@@ -10,6 +10,13 @@ WORKDIR /app
 COPY package.json bun.lock ./
 RUN bun install --frozen-lockfile
 
+# SvelteKit validates typed env vars (src/env.ts) during the build, so
+# DATABASE_URL must be present at build time, not just at runtime. Railway
+# exposes service variables to the build, but a Dockerfile only sees them if
+# declared as ARG. This value is only used by the discarded build stage.
+ARG DATABASE_URL
+ENV DATABASE_URL=$DATABASE_URL
+
 # Build the app. svelte-adapter-bun emits a self-contained ./build directory.
 COPY . .
 RUN bun run build
